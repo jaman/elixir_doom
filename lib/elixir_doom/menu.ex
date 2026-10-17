@@ -2,14 +2,16 @@ defmodule ElixirDoom.Menu do
   @moduledoc """
   Doom's menus, as the player moves through them: main, episode, skill, options, sound
   volume, controls, the read-this screens, and Doom's messages that wait for a key or for
-  y or n.
+  y or n (a controller's `A`, `{:key, :enter, [:pad]}`, answers y).
 
       menu = ElixirDoom.Menu.open(settings)
       %{menu: menu, settings: settings, sounds: sounds} = ElixirDoom.Menu.event(menu, {:key, :down}, settings)
 
   `event/3` returns what `Cauldron2D.Client.Game`'s `menu_event/3` returns, the menu
   holding the settings it shows (`:settings`). The options live in the settings: key
-  bindings, the sound and music volumes, and under `:options` messages on or off,
+  bindings, the sound and music volumes, where the game is drawn (`:drawing`: auto,
+  software, the graphics card in the terminal, or a window), and under `:options`
+  messages on or off,
   `:high` or `:low` detail, the screen size in Doom's blocks (3 to 11) and the mouse
   sensitivity (0 to 9). A new game is sent to the world as the request
   `{:new_game, episode, skill}` (skill 1 to 5); ending the game or quitting leaves it.
@@ -40,6 +42,7 @@ defmodule ElixirDoom.Menu do
   ]
 
   @quit_sounds ~w(DSPLDETH DSDMPAIN DSPOPAIN DSSLOP DSTELEPT DSPOSIT1 DSPOSIT3 DSSGTATK)
+  @drawings [:auto, :software, :pane, :window]
 
   @controls [
     {"use mouse", :mouse},
@@ -60,7 +63,18 @@ defmodule ElixirDoom.Menu do
     main: [:new_game, :options, :load, :save, :read_this, :quit],
     episode: [1, 2, 3, 4],
     skill: [1, 2, 3, 4, 5],
-    options: [:end_game, :messages, :detail, :screen_size, nil, :mouse, nil, :sound, :controls],
+    options: [
+      :end_game,
+      :messages,
+      :detail,
+      :screen_size,
+      nil,
+      :mouse,
+      nil,
+      :sound,
+      :controls,
+      :drawing
+    ],
     sound: [:sfx, nil, :music, nil]
   }
 
@@ -93,7 +107,7 @@ defmodule ElixirDoom.Menu do
   def event(%__MODULE__{grab?: true} = menu, event, settings), do: grab(menu, event, settings)
 
   def event(%__MODULE__{message: %{}} = menu, event, settings),
-    do: answer(menu, key_of(event), settings)
+    do: answer(menu, response_of(event), settings)
 
   def event(%__MODULE__{} = menu, event, settings) do
     case key_of(event) do
@@ -105,6 +119,9 @@ defmodule ElixirDoom.Menu do
   defp key_of({:key, key}), do: key
   defp key_of({:key, key, _mods}), do: key
   defp key_of(_event), do: nil
+
+  defp response_of({:key, :enter, [:pad]}), do: :y
+  defp response_of(event), do: key_of(event)
 
   defp page(:main, key, _menu, settings) when key in [:escape, :backspace],
     do: %{menu: nil, settings: settings, sounds: [sound("DSSWTCHX")]}
@@ -271,6 +288,13 @@ defmodule ElixirDoom.Menu do
 
   defp option(:controls, :enter, menu, settings),
     do: stay(%{menu | page: :controls}, settings, "DSPISTOL")
+
+  defp option(:drawing, key, menu, settings) do
+    index = Enum.find_index(@drawings, &(&1 == Map.get(settings, :drawing, :auto))) || 0
+    delta = if key == :left, do: -1, else: 1
+    drawing = Enum.at(@drawings, Integer.mod(index + delta, length(@drawings)))
+    stay(menu, Map.put(settings, :drawing, drawing), "DSPISTOL")
+  end
 
   defp option(_item, _key, menu, settings), do: stay(menu, settings)
 

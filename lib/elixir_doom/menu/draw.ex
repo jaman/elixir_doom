@@ -67,7 +67,10 @@ defmodule ElixirDoom.Menu.Draw do
         thermo({60, top + @line * 6}, 10, s.mouse_sensitivity) ++
         [skull({60, top}, menu.cursor.options, time)]
 
-    {pictures, [{"CONTROLS", {62, top + @line * 8 + 3}, 2}]}
+    drawing = "DRAWING  " <> drawing_text(Map.get(menu.settings, :drawing, :auto))
+
+    {pictures,
+     [{"CONTROLS", {62, top + @line * 8 + 3}, 2}, {drawing, {62, top + @line * 9 + 3}, 2}]}
   end
 
   defp page(:sound, menu, _graphics, time) do
@@ -109,6 +112,11 @@ defmodule ElixirDoom.Menu.Draw do
 
   defp page(:read1, _menu, _graphics, _time), do: {[{:full, "HELP2"}], []}
   defp page(:read2, _menu, _graphics, _time), do: {[{:full, "HELP1"}], []}
+
+  defp drawing_text(:auto), do: "AUTO"
+  defp drawing_text(:software), do: "SOFTWARE"
+  defp drawing_text(:pane), do: "CARD"
+  defp drawing_text(:window), do: "WINDOW"
 
   defp value(settings, :mouse), do: if(Menu.mouse?(settings), do: "on", else: "off")
   defp value(settings, action), do: keys_text(Map.get(settings.bindings, action, []))

@@ -27,19 +27,30 @@ defmodule ElixirDoom.Layer do
 
       if row_a == blank_a and row_b == blank_b,
         do: under,
-        else: merge(under, row_a, row_b, colours)
+        else: merge(under, row_a, row_b, colours, [])
     end
   end
 
-  defp merge(under, row_a, row_b, colours) do
-    pixels = for <<pixel::binary-4 <- under>>, do: pixel
+  defp merge(<<>>, <<>>, <<>>, _colours, acc), do: acc |> Enum.reverse() |> IO.iodata_to_binary()
 
-    [pixels, :binary.bin_to_list(row_a), :binary.bin_to_list(row_b)]
-    |> Enum.zip_with(fn
-      [pixel, 0, 255] -> pixel
-      [_pixel, a, 255] -> elem(colours, a)
-      [_pixel, _a, b] -> elem(colours, b)
-    end)
-    |> IO.iodata_to_binary()
-  end
+  defp merge(
+         <<pixel::binary-4, under::binary>>,
+         <<0, row_a::binary>>,
+         <<255, row_b::binary>>,
+         colours,
+         acc
+       ),
+       do: merge(under, row_a, row_b, colours, [pixel | acc])
+
+  defp merge(
+         <<_pixel::binary-4, under::binary>>,
+         <<a, row_a::binary>>,
+         <<b, row_b::binary>>,
+         colours,
+         acc
+       ),
+       do: merge(under, row_a, row_b, colours, [drawn(colours, a, b) | acc])
+
+  defp drawn(colours, a, 255), do: elem(colours, a)
+  defp drawn(colours, _a, b), do: elem(colours, b)
 end

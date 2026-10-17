@@ -388,6 +388,7 @@ defmodule ElixirDoom.Game do
 
           [
             %{
+              id: mobj.id,
               x: mobj.x,
               y: mobj.y,
               z: mobj.z,

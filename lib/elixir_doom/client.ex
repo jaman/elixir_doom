@@ -7,7 +7,8 @@ defmodule ElixirDoom.Client do
 
   The whole pane is the game's own picture (`ElixirDoom.Render`), drawn at the pane's
   size in whatever the terminal shows best: images where it takes them, block glyphs
-  elsewhere.
+  elsewhere. The scene also describes the same picture for the graphics card
+  (`ElixirDoom.Gpu`), drawn when the picture options ask for `gpu` or `window`.
 
   ## Keys
 
@@ -35,7 +36,7 @@ defmodule ElixirDoom.Client do
 
   @behaviour Cauldron2D.Client.Game
 
-  alias ElixirDoom.{Assets, Game, Menu, Render, Sounds, Wad, World}
+  alias ElixirDoom.{Assets, Game, Gpu, Menu, Render, Sounds, Wad, World}
 
   @atlas :elixir_doom
 
@@ -224,21 +225,20 @@ defmodule ElixirDoom.Client do
 
   @impl true
   def scene(view, look) do
-    key = view_key(view)
+    opts = [
+      automap: Map.get(look, :automap, false),
+      seen_key: view_key(view),
+      menu: Map.get(look, :menu),
+      options: Map.get(look, :options, %{})
+    ]
 
     %{
       focus: {0.0, 0.0},
       bounds: :unbounded,
       cell: fn _cell -> nil end,
       movers: [],
-      picture: fn size, aspect ->
-        Render.picture(view, size, aspect,
-          automap: Map.get(look, :automap, false),
-          seen_key: key,
-          menu: Map.get(look, :menu),
-          options: Map.get(look, :options, %{})
-        )
-      end
+      picture: fn size, aspect -> Render.picture(view, size, aspect, opts) end,
+      gpu: fn target, cache, size, aspect -> Gpu.draw(view, opts, target, cache, size, aspect) end
     }
   end
 

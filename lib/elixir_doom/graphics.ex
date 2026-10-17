@@ -10,17 +10,20 @@ defmodule ElixirDoom.Graphics do
 
   Pictures are named `{:wall, name}`, `{:flat, name}` and `{:patch, name}` in the set.
   `palettes` holds the WAD's fourteen 768-byte palettes in order: `0` normal, `1..8`
-  hurt, `9..12` picking up, `13` the radiation suit.
+  hurt, `9..12` picking up, `13` the radiation suit. `elixir_pictures` is the same set
+  with its pictures kept in Elixir (`native: false`), for uploading them to a graphics
+  card.
   """
 
   alias Cauldron2D.Sectors.Pictures
   alias ElixirDoom.Wad
 
   @enforce_keys [:pictures, :palettes, :sprites, :patches]
-  defstruct [:pictures, :palettes, :sprites, :patches, :textures, :flats]
+  defstruct [:pictures, :elixir_pictures, :palettes, :sprites, :patches, :textures, :flats]
 
   @type t :: %__MODULE__{
           pictures: Pictures.t(),
+          elixir_pictures: Pictures.t(),
           palettes: tuple(),
           sprites: %{String.t() => %{non_neg_integer() => tuple()}},
           patches: %{
@@ -54,10 +57,15 @@ defmodule ElixirDoom.Graphics do
           {{:patch, name}, Map.take(patch, [:width, :height, :pixels, :mask])}
         end)
 
-    pictures = Pictures.new(named, Wad.lump!(wad, "COLORMAP"), opts)
+    colormap = Wad.lump!(wad, "COLORMAP")
+    pictures = Pictures.new(named, colormap, opts)
+
+    elixir_pictures =
+      if pictures.native, do: Pictures.new(named, colormap, native: false), else: pictures
 
     %__MODULE__{
       pictures: pictures,
+      elixir_pictures: elixir_pictures,
       palettes: wad |> Wad.lump!("PLAYPAL") |> chunks(768) |> List.to_tuple(),
       sprites: sprites(wad, pictures),
       patches:

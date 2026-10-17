@@ -1,7 +1,7 @@
 defmodule ElixirDoom.MixProject do
   use Mix.Project
 
-  @version "0.1.0"
+  @version "0.2.0"
   @source_url "https://github.com/jaman/elixir_doom"
 
   def project do
@@ -40,14 +40,15 @@ defmodule ElixirDoom.MixProject do
 
   defp deps do
     [
-      family(:cauldron_2d, "~> 0.2.2", "../cauldron/cauldron_2d", []),
-      family(:cauldron_2d_drafter, "~> 0.2.2", "../cauldron/cauldron_2d_drafter", []),
-      family(:linocut, "~> 0.2.2", "../cauldron/linocut", override: true),
-      family(:drafter, "~> 0.5.0", "../drafter", override: true),
-      family(:french_curve, "~> 0.2.0", "../french_curve", override: true),
-      family(:tuning_fork, "~> 0.1.12", "../tuning_fork/tuning_fork", override: true),
-      family(:tuning_fork_speaker, "~> 0.1.12", "../tuning_fork/tuning_fork_speaker", []),
+      family(:cauldron_2d, "~> 0.3.0", "../cauldron/cauldron_2d", []),
+      family(:cauldron_2d_drafter, "~> 0.3.0", "../cauldron/cauldron_2d_drafter", []),
+      family(:linocut, "~> 0.3.0", "../cauldron/linocut", override: true),
+      family(:drafter, "~> 0.5.6", "../drafter", override: true),
+      family(:french_curve, "~> 0.2.1", "../french_curve", override: true),
+      family(:tuning_fork, "~> 0.1.13", "../tuning_fork/tuning_fork", override: true),
+      family(:tuning_fork_speaker, "~> 0.1.13", "../tuning_fork/tuning_fork_speaker", []),
       family(:gamepad, "~> 0.1.0", "../gamepad", []),
+      family(:cauldron_gpu, "~> 0.3.0", "../cauldron/cauldron_gpu", []),
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false}
     ]
